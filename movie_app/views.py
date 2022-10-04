@@ -3,6 +3,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import DirectorListSerializer, MoviesListSerializer, ReviewsListSerializer
 from .serializers import MoviesReviewsListSerializer
+from .serializers import DirectorCreateSerializer, DirectorUpdateSerializer
+from .serializers import MovieCreateSerializer, MovieUpdateSerializer
+from .serializers import ReviewCreateSerializer, ReviewUpdateSerializer
 from .models import Director, Movie, Review
 from rest_framework import status
 
@@ -14,11 +17,19 @@ def directors_view(request):
         data = DirectorListSerializer(directors, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
-        # print(request.data)
+        serializer = DirectorCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'data with errors',
+                    'errors': serializer.errors
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
         director = Director.objects.create(
             name=request.data.get('name')
         )
-        # print(director)
+        director.save()
         return Response(status=status.HTTP_201_CREATED,
                         data={'message': 'Successfully created'}
                         )
@@ -41,10 +52,12 @@ def director_item_view(request, id):
             status=status.HTTP_204_NO_CONTENT
         )
     else:
+        serializer = DirectorUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         director.name = request.data.get('name')
         director.save()
         return Response(data={'message': 'Successfully updated',
-                              'product': DirectorListSerializer(director).data
+                              'director': DirectorListSerializer(director).data
                               }
                         )
 
@@ -56,6 +69,15 @@ def movies_view(request):
         data = MoviesListSerializer(movies, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializer = MovieCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'data with errors',
+                    'errors': serializer.errors
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
         movie = Movie.objects.create(
             title=request.data.get('title'),
             description=request.data.get('description'),
@@ -86,6 +108,8 @@ def movie_item_view(request, id):
             status=status.HTTP_204_NO_CONTENT
         )
     else:
+        serializer = MovieUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         movie.title = request.data.get('title'),
         movie.description = request.data.get('description'),
         # movie.duration = request.data.get('duration'),
@@ -104,6 +128,15 @@ def reviews_view(request):
         data = ReviewsListSerializer(reviews, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
+        serializer = ReviewCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                data={
+                    'message': 'data with errors',
+                    'errors': serializer.errors
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
         review = Review.objects.create(
             text=request.data.get('text'),
             movie_id=request.data.get('movie'),
@@ -131,6 +164,8 @@ def review_item_view(request, id):
             status=status.HTTP_204_NO_CONTENT
         )
     else:
+        serializer = ReviewUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         review.text = request.data.get('text')
         review.movie_id = request.data.get('movie')
         review.stars = request.data.get('stars')
