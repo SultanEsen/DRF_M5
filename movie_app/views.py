@@ -1,5 +1,5 @@
 # from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import DirectorListSerializer, MoviesListSerializer, ReviewsListSerializer
 from .serializers import MoviesReviewsListSerializer
@@ -8,9 +8,11 @@ from .serializers import MovieCreateSerializer, MovieUpdateSerializer
 from .serializers import ReviewCreateSerializer, ReviewUpdateSerializer
 from .models import Director, Movie, Review
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def directors_view(request):
     if request.method == 'GET':
         directors = Director.objects.all()
@@ -36,6 +38,7 @@ def directors_view(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def director_item_view(request, id):
     try:
         director = Director.objects.get(id=id)
@@ -63,7 +66,9 @@ def director_item_view(request, id):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def movies_view(request):
+    print(request.user)
     if request.method == 'GET':
         movies = Movie.objects.all()
         data = MoviesListSerializer(movies, many=True).data
@@ -91,6 +96,7 @@ def movies_view(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def movie_item_view(request, id):
     try:
         movie = Movie.objects.get(id=id)
@@ -110,9 +116,9 @@ def movie_item_view(request, id):
     else:
         serializer = MovieUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        movie.title = request.data.get('title'),
-        movie.description = request.data.get('description'),
-        # movie.duration = request.data.get('duration'),
+        movie.title = request.data.get('title')
+        movie.description = request.data.get('description')
+        movie.duration = request.data.get('duration')
         movie.director_id = request.data.get('director')
         movie.save()
         return Response(
@@ -122,6 +128,7 @@ def movie_item_view(request, id):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def reviews_view(request):
     if request.method == 'GET':
         reviews = Review.objects.all()
@@ -150,6 +157,7 @@ def reviews_view(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def review_item_view(request, id):
     try:
         review = Review.objects.get(id=id)
@@ -177,6 +185,7 @@ def review_item_view(request, id):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def movies_reviews_view(request):
     movies_reviews = Movie.objects.all()
     data = MoviesReviewsListSerializer(movies_reviews, many=True).data
